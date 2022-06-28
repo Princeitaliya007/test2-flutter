@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'home_page.dart';
+
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
 
@@ -15,8 +17,37 @@ class _SignInPageState extends State<SignInPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('home_page');
+              isShow = true;
+            },
             child: const Text("Sign In with Admin"),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('home_page');
+                  isShow = false;
+                },
+                child: const Text("Sign In with Manager"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('home_page');
+                  isShow = false;
+                },
+                child: const Text("Sign In with Clerk"),
+              ),
+            ],
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('home_page');
+              isShow = false;
+            },
+            child: const Text("Sign In with Employee"),
           ),
         ],
       ),

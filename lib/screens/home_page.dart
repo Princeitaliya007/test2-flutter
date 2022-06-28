@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
-import '../helpers/firebase_helper.dart';
 import '../models/employee_model.dart';
 
 String? lastId;
+bool isShow = false;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -37,17 +37,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text("HomePAge"),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              await FirebaseHelper.firebaseHelper.logOut();
-
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/', (route) => false);
-            },
-            icon: const Icon(Icons.power_settings_new),
-          ),
-        ],
+        actions: [],
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('employees').snapshots(),
@@ -85,180 +75,189 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        IconButton(
-                          onPressed: () {
-                            nameUpdateController.text = empData['name'];
-                            ageUpdateController.text =
-                                empData['age'].toString();
-                            cityUpdateController.text = empData['city'];
+                        (isShow == true)
+                            ? IconButton(
+                                onPressed: () {
+                                  nameUpdateController.text = empData['name'];
+                                  ageUpdateController.text =
+                                      empData['age'].toString();
+                                  cityUpdateController.text = empData['city'];
 
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Center(
-                                  child: Text("Update Data"),
-                                ),
-                                content: Form(
-                                  key: _updateFormKey,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      TextFormField(
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return "Enter your name first.";
-                                          }
-                                          return null;
-                                        },
-                                        onSaved: (val) {
-                                          setState(() {
-                                            name = val;
-                                          });
-                                        },
-                                        controller: nameUpdateController,
-                                        decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          label: Text("Name"),
-                                          hintText: "Enter your name",
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Center(
+                                        child: Text("Update Data"),
+                                      ),
+                                      content: Form(
+                                        key: _updateFormKey,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextFormField(
+                                              validator: (val) {
+                                                if (val!.isEmpty) {
+                                                  return "Enter your name first.";
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (val) {
+                                                setState(() {
+                                                  name = val;
+                                                });
+                                              },
+                                              controller: nameUpdateController,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                label: Text("Name"),
+                                                hintText: "Enter your name",
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 10,
+                                            ),
+                                            TextFormField(
+                                              validator: (val) {
+                                                if (val!.isEmpty) {
+                                                  return "Enter your age first.";
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (val) {
+                                                setState(() {
+                                                  age = int.parse(val!);
+                                                });
+                                              },
+                                              controller: ageUpdateController,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                label: Text("Age"),
+                                                hintText: "Enter your age",
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 10,
+                                            ),
+                                            TextFormField(
+                                              validator: (val) {
+                                                if (val!.isEmpty) {
+                                                  return "Enter your city first.";
+                                                }
+                                                return null;
+                                              },
+                                              onSaved: (val) {
+                                                setState(() {
+                                                  city = val;
+                                                });
+                                              },
+                                              controller: cityUpdateController,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                label: Text("City"),
+                                                hintText: "Enter your city",
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      TextFormField(
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return "Enter your age first.";
-                                          }
-                                          return null;
-                                        },
-                                        onSaved: (val) {
-                                          setState(() {
-                                            age = int.parse(val!);
-                                          });
-                                        },
-                                        controller: ageUpdateController,
-                                        decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          label: Text("Age"),
-                                          hintText: "Enter your age",
+                                      actions: [
+                                        ElevatedButton(
+                                          child: const Text("Update"),
+                                          onPressed: () {
+                                            if (_updateFormKey.currentState!
+                                                .validate()) {
+                                              _updateFormKey.currentState!
+                                                  .save();
+
+                                              Employee e = Employee(
+                                                  name: name,
+                                                  age: age,
+                                                  city: city);
+
+                                              lastId =
+                                                  "${int.parse(lastId!) + 1}";
+
+                                              FirestoreHelper.firestoreHelper
+                                                  .updateData(
+                                                      data: e, id: docs[i].id);
+
+                                              nameController.clear();
+                                              ageController.clear();
+                                              cityController.clear();
+
+                                              setState(() {
+                                                name = "";
+                                                age = 0;
+                                                city = "";
+                                              });
+
+                                              Navigator.of(context).pop();
+                                            }
+                                          },
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      TextFormField(
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return "Enter your city first.";
-                                          }
-                                          return null;
-                                        },
-                                        onSaved: (val) {
-                                          setState(() {
-                                            city = val;
-                                          });
-                                        },
-                                        controller: cityUpdateController,
-                                        decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          label: Text("City"),
-                                          hintText: "Enter your city",
+                                        OutlinedButton(
+                                          child: const Text("Cancel"),
+                                          onPressed: () {
+                                            nameController.clear();
+                                            ageController.clear();
+                                            cityController.clear();
+
+                                            setState(() {
+                                              name = "";
+                                              age = 0;
+                                              city = "";
+                                            });
+
+                                            Navigator.of(context).pop();
+                                          },
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                actions: [
-                                  ElevatedButton(
-                                    child: const Text("Update"),
-                                    onPressed: () {
-                                      if (_updateFormKey.currentState!
-                                          .validate()) {
-                                        _updateFormKey.currentState!.save();
-
-                                        Employee e = Employee(
-                                            name: name, age: age, city: city);
-
-                                        lastId = "${int.parse(lastId!) + 1}";
-
-                                        FirestoreHelper.firestoreHelper
-                                            .updateData(
-                                                data: e, id: docs[i].id);
-
-                                        nameController.clear();
-                                        ageController.clear();
-                                        cityController.clear();
-
-                                        setState(() {
-                                          name = "";
-                                          age = 0;
-                                          city = "";
-                                        });
-
-                                        Navigator.of(context).pop();
-                                      }
-                                    },
-                                  ),
-                                  OutlinedButton(
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      nameController.clear();
-                                      ageController.clear();
-                                      cityController.clear();
-
-                                      setState(() {
-                                        name = "";
-                                        age = 0;
-                                        city = "";
-                                      });
-
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text(
-                                      "Are you sure want to delete this record"),
-                                  actions: [
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        await FirestoreHelper.firestoreHelper
-                                            .deleteData(id: docs[i].id);
-
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text("Delete"),
+                                      ],
                                     ),
-                                    OutlinedButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text("Cancel"),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.red,
-                          ),
-                        ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                              )
+                            : Container(),
+                        (isShow == true)
+                            ? IconButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            "Are you sure want to delete this record"),
+                                        actions: [
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await FirestoreHelper
+                                                  .firestoreHelper
+                                                  .deleteData(id: docs[i].id);
+
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("Delete"),
+                                          ),
+                                          OutlinedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("Cancel"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                              )
+                            : Container(),
                       ],
                     ),
                   ),
